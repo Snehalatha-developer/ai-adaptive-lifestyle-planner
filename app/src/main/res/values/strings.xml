@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI Adaptive Lifestyle Planner</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_schedule">Schedule</string>
+    <string name="nav_ai_planner">AI Planner</string>
+    <string name="nav_progress">Progress</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Let\'s set up your day</string>
+    <string name="onboarding_subtitle">Tell us about your routine so we can plan around it.</string>
+    <string name="onboarding_save_cta">Save &amp; Continue</string>
+    <string name="onboarding_update_cta">Save Changes</string>
+
+    <!-- Errors -->
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_no_internet">No internet connection.</string>
+</resources>
