@@ -1,6 +1,5 @@
 package com.example.aiplanner.navigation
 
-import android.net.http.SslCertificate.saveState
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -42,6 +41,19 @@ fun AiPlannerApp() {
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBar = BottomNavItem.items.any { it.route == currentRoute }
 
+    // Shared by the bottom nav tabs AND any in-screen button that jumps to a top-level
+    // destination (e.g. Home's "View Full Schedule"). Using the same popUpTo/saveState/
+    // restoreState options everywhere keeps the back stack shape consistent regardless of how a
+    // destination was reached — mixing this with a plain navigate() elsewhere left the back
+    // stack in a state where returning to the start destination silently no-opped.
+    fun navigateToTopLevel(route: String) {
+        navController.navigate(route) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
@@ -49,13 +61,7 @@ fun AiPlannerApp() {
                     BottomNavItem.items.forEach { item ->
                         NavigationBarItem(
                             selected = currentRoute == item.route,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
+                            onClick = { navigateToTopLevel(item.route) },
                             icon = { Icon(item.icon, contentDescription = item.label) },
                             label = { Text(item.label) }
                         )
@@ -88,9 +94,9 @@ fun AiPlannerApp() {
             }
             composable(Routes.HOME) {
                 HomeScreen(
-                    onViewSchedule = { navController.navigate(Routes.SCHEDULE) { launchSingleTop = true } },
-                    onOpenAiPlanner = { navController.navigate(Routes.AI_PLANNER) { launchSingleTop = true } },
-                    onOpenProgress = { navController.navigate(Routes.PROGRESS) { launchSingleTop = true } }
+                    onViewSchedule = { navigateToTopLevel(Routes.SCHEDULE) },
+                    onOpenAiPlanner = { navigateToTopLevel(Routes.AI_PLANNER) },
+                    onOpenProgress = { navigateToTopLevel(Routes.PROGRESS) }
                 )
             }
             composable(Routes.SCHEDULE) { ScheduleScreen() }

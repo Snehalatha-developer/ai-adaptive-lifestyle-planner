@@ -2,6 +2,7 @@ package com.example.aiplanner.ui.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.aiplanner.domain.usecase.GenerateAiScheduleUseCase
 import com.example.aiplanner.domain.usecase.GenerateLocalScheduleUseCase
 import com.example.aiplanner.domain.usecase.GetUserProfileUseCase
 import com.example.aiplanner.domain.usecase.SaveUserProfileUseCase
@@ -26,7 +27,8 @@ data class OnboardingUiState(
 class OnboardingViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val saveUserProfileUseCase: SaveUserProfileUseCase,
-    private val generateLocalScheduleUseCase: GenerateLocalScheduleUseCase
+    private val generateLocalScheduleUseCase: GenerateLocalScheduleUseCase,
+    private val generateAiScheduleUseCase: GenerateAiScheduleUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
@@ -67,7 +69,7 @@ class OnboardingViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             val profile = form.toUserProfile()
             saveUserProfileUseCase(profile)
-            generateLocalScheduleUseCase(profile)
+            generateAiScheduleUseCase(profile).onFailure { generateLocalScheduleUseCase(profile) }
             _uiState.update { it.copy(isSaving = false) }
             onSaved()
         }

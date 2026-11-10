@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aiplanner.domain.model.ScheduleTask
 import com.example.aiplanner.domain.model.TaskStatus
+import com.example.aiplanner.domain.usecase.GenerateAiScheduleUseCase
 import com.example.aiplanner.domain.usecase.GenerateLocalScheduleUseCase
 import com.example.aiplanner.domain.usecase.GetTodayTasksUseCase
 import com.example.aiplanner.domain.usecase.GetUserProfileUseCase
@@ -41,7 +42,8 @@ data class HomeUiState(
 class HomeViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val getTodayTasksUseCase: GetTodayTasksUseCase,
-    private val generateLocalScheduleUseCase: GenerateLocalScheduleUseCase
+    private val generateLocalScheduleUseCase: GenerateLocalScheduleUseCase,
+    private val generateAiScheduleUseCase: GenerateAiScheduleUseCase
 ) : ViewModel() {
 
     // Re-evaluates "next activity" / countdown periodically without requiring a data change.
@@ -78,12 +80,16 @@ class HomeViewModel @Inject constructor(
     private val _events = Channel<String>(Channel.BUFFERED)
     val events: Flow<String> = _events.receiveAsFlow()
 
-    /** Rebuilds today's schedule from the current profile (stand-in for the AI regenerate call). */
+    /** Rebuilds today's schedule via the AI planner, falling back to the local generator offline. */
     fun regenerateSchedule() {
         viewModelScope.launch {
             val profile = getUserProfileUseCase().first()
-            generateLocalScheduleUseCase(profile)
-            _events.send("Schedule regenerated")
+            generateAiScheduleUseCase(profile)
+                .onSuccess { _events.send("Schedule regenerated") }
+                .onFailure {
+                    generateLocalScheduleUseCase(profile)
+                    _events.send("Couldn't reach AI planner — used offline schedule instead")
+                }
         }
     }
 

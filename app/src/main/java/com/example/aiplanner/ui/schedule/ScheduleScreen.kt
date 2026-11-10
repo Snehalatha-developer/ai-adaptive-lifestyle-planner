@@ -89,6 +89,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
     if (selected != null) {
         TaskDetailBottomSheet(
             task = selected,
+            isReplanning = uiState.isReplanning,
             onDismiss = { viewModel.selectTask(null) },
             onDone = { viewModel.completeSelectedTask() },
             onSkip = { viewModel.skipSelectedTask() },
@@ -180,6 +181,7 @@ private fun TaskDisplayStatus.label(): String = when (this) {
 @Composable
 private fun TaskDetailBottomSheet(
     task: ScheduleTask,
+    isReplanning: Boolean,
     onDismiss: () -> Unit,
     onDone: () -> Unit,
     onSkip: () -> Unit,
@@ -211,7 +213,11 @@ private fun TaskDetailBottomSheet(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 OutlinedButton(onClick = onRemind, modifier = Modifier.weight(1f)) { Text("Remind in 10 min") }
-                OutlinedButton(onClick = onReschedule, modifier = Modifier.weight(1f)) { Text("Reschedule") }
+                OutlinedButton(
+                    onClick = onReschedule,
+                    enabled = !isReplanning,
+                    modifier = Modifier.weight(1f)
+                ) { Text(if (isReplanning) "Rescheduling…" else "Reschedule") }
             }
         }
     }

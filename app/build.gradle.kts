@@ -1,8 +1,18 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
+}
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -19,6 +29,19 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Base URL and shared key for the AI planner proxy server (see /server). Configure these
+        // in local.properties (gitignored) — see server/README.md for how to obtain them.
+        buildConfigField(
+            "String",
+            "AI_BASE_URL",
+            "\"${localProperties.getProperty("AI_BASE_URL", "http://10.0.2.2:8787/")}\""
+        )
+        buildConfigField(
+            "String",
+            "AI_APP_SHARED_KEY",
+            "\"${localProperties.getProperty("AI_APP_SHARED_KEY", "")}\""
+        )
     }
 
     buildTypes {
@@ -37,6 +60,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -75,6 +99,13 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+
+    // Networking (AI planner proxy)
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.kotlinx.serialization.converter)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.kotlinx.serialization.json)
 
     // Core library desugaring (enables java.time on minSdk 24)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
